@@ -1,6 +1,6 @@
 from math import inf
 '''
-Floyd-Fulkerson implementation and general network flow solver base class. Implemented based
+Ford-Fulkerson implementation and general network flow solver base class. Implemented based
 on William Fiset youtube video: https://www.youtube.com/watch?v=LdOnanfc5TM&list=PLDV1Zeh2NRsDj3NzHbbFIC58etjZhiGcG&index=1
 '''
 
