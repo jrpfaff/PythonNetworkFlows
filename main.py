@@ -1,4 +1,5 @@
 from math import inf
+from collections import deque
 '''
 Ford-Fulkerson implementation and general network flow solver base class. Implemented based
 on William Fiset youtube video: https://www.youtube.com/watch?v=LdOnanfc5TM&list=PLDV1Zeh2NRsDj3NzHbbFIC58etjZhiGcG&index=1
@@ -42,6 +43,9 @@ class Edge:
 
     def toString(self):
         return f'Edge {self.start} -> {self.to} | flow = {self.flow:>5} | capacity = {self.capacity:>5} | is residual: {self.isResidual()}'
+
+
+
 
 
 
@@ -114,6 +118,10 @@ class SolverBase:
         #This will be overriden in the subclass that extends this class.
         pass
 
+    def markNodesAsUnvisited(self):
+        self.visitedToken += 1
+
+
 
 
 class FordFulkersonDFSSolver(SolverBase):
@@ -159,10 +167,72 @@ class FordFulkersonDFSSolver(SolverBase):
                     return bottleNeck
         return 0
 
+class EdmondsKarpSolver(SolverBase):
+    def __init__(self, n, s, t):
+        super().__init__(n, s, t)
+
+    def solve(self):
+        f = -1
+        while f != 0:
+            self.markNodesAsUnvisited()
+            f = self.bfs()
+            self.MaxFlow += f
+
+
+    def bfs(self):
+        q = deque()
+        self.visit(self.s)
+        q.append(self.s)
+
+        prev = [None for _ in range(self.n)]
+        while q:
+            node = q.popleft()
+            if node == self.t:
+                break
+
+            for edge in self.graph[node]:
+                cap = edge.remainingCapacity()
+                if cap > 0 and (not self.visited[edge.to] == self.visitedToken):
+                    self.visit(edge.to)
+                    prev[edge.to] = edge
+                    q.append(edge.to)
+
+        if prev[self.t] is None:
+            return 0
+
+        bottleNeck = inf
+        edge = prev[self.t]
+        while edge is not None:
+            bottleNeck = min(bottleNeck, edge.remainingCapacity())
+            edge = prev[edge.start]
+
+        edge = prev[t]
+        while edge is not None:
+            edge.augment(bottleNeck)
+            edge = prev[edge.start]
+
+        return bottleNeck
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 n = 7
 s, t = 0, 6
-solver = FordFulkersonDFSSolver(n, s, t)
+solver = EdmondsKarpSolver(n, s, t)
+
 
 solver.addEdge(s, 1, 9)
 solver.addEdge(s, 3, 12)
@@ -182,7 +252,6 @@ solver.addEdge(5, t, 5)
 
 print(solver.getMaxFlow())
 solver.getSolution()
-
 
 
 
